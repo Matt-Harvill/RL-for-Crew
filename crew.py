@@ -2,8 +2,6 @@ from subclasses import *
 
 num_rounds = 10
 num_players = 4
-# Dict mapping card str names to their cards
-cards = {'g7': Card('green', 7)}
 
 def main():
 
@@ -23,8 +21,8 @@ def main():
         for player in game.players:
             # Check for players wanting to reveal
 
-            played_card:str = input('Type the card you want to play:')
-            player.play_card(cards[played_card])
+            color, number = input.split('Type the card you want to play:', ' ')
+            player.play_card(Card(color, number))
 
         # Check if tasks completed or if any can't be completed...
 
