@@ -1,4 +1,4 @@
-from subclasses import Player, Task
+from subclasses import Player, Task, Card
 import numpy as np
 
 class Game(object):
@@ -80,7 +80,7 @@ class Game(object):
         """
         player: 'Player'
         for idx, player in enumerate(self.players):
-            print(f"Player {idx}, your hand is: {player.get_printable_hand}")
+            print(f"Player {idx}, your hand is: {player.get_printable_hand()}")
 
     def share_info_window(self):
         player: 'Player'
