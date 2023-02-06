@@ -2,8 +2,6 @@ from typing import List
 from game import Game
 from copy import deepcopy
 
-# token_positions -> 'unused', 'used', 'lowest', 'only', 'highest'
-
 class Player:
 
     def __init__(self, is_agent: bool, id: int) -> None:
@@ -15,7 +13,7 @@ class Player:
         self.cards_won = []
         self.tricks_won = 0
 
-        self.token_position = 'unused'
+        self.token_position = 'unused' # token_positions -> 'unused', 'used', 'lowest', 'only', 'highest'
         self.revealed_card = None
         self.task = None
 
@@ -23,9 +21,49 @@ class Player:
         self.starting_hand = deepcopy(hand)
         self.cards_in_hand = deepcopy(hand)
 
-    def share_info(self, card: 'Card', position: str) -> None:
+    def get_printable_hand(self) -> List[str]:
+        printable_hand = []
+
+        card: 'Card'
+        for card in enumerate(self.cards_in_hand):
+            printable_hand.append(str(card))
+
+        return printable_hand
+
+    def share_info(self, sharing_card: 'Card', position: str) -> bool:
+        """
+        Makes sure that sharing the input card and position is correct and valid
+        If so, it performs the info sharing
+        """
+        # Make sure player has this card
+        card: 'Card'
+        if card not in self.cards_in_hand:
+            return False
+
+        # Check conditions based on position of information sharing
+        if position == 'lowest':
+            # If there is another card of this color with lower number, indicate invalid information share
+            for card in self.cards_in_hand:
+                if card != sharing_card and card.color == sharing_card.color and card.number < sharing_card.number:
+                    return False
+        elif position == 'only':
+            # If there is another card of this color, indicate invalid information share
+            for card in self.cards_in_hand:
+                if card != sharing_card and card.color == sharing_card.color:
+                    return False
+        elif position == 'highest':
+            # If there is a card of this color with higher number, indicate invalid information share
+            for card in self.cards_in_hand:
+                if card != sharing_card and card.color == sharing_card.color and card.number > sharing_card.number:
+                    return False
+        else:
+            # If invalid position name, indicate invalid information share
+            return False
+
+        # Set the revealed card
         self.revealed_card = deepcopy(card)
         self.token_position = position
+        return True
 
     def play_card(self, card: 'Card') -> 'Card':
         if card == self.revealed_card:
