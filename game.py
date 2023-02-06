@@ -172,19 +172,30 @@ class Game(object):
             winner = self.check_trick_winner()
             self.start_player_idx = winner.id
 
+            game_status = self.get_game_status()
+
+            if game_status == "lost":
+                print("Lost game")
+
+            elif game_status == "done":
+                print("Ya'll won! Go celebrate w boba")
 
 
 
-                
+    def get_game_status(self):
 
-    def is_game_over(self):
-
+        completed_tasks = 0
         for player, task in self.task_assignments:
-            if not task.is_complete(player):
-                return False
+            task.update_completion(self, player)
+            if task.is_complete:
+                completed_tasks += 1
+            elif task.is_impossible:
+                return "lost"
 
+        if completed_tasks == 2:
+            return "won"
 
-        return True
+        return "ongoing"
 
 
         
