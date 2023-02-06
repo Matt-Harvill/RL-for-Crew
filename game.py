@@ -74,18 +74,34 @@ class Game(object):
 
         assert self.captain != None
 
-
-
-    def show_hands(self):
-
+    def show_hands(self) -> None:
+        """
+        Print all of the players' hands
+        """
+        player: 'Player'
         for idx, player in enumerate(self.players):
-
-            print(f"Player {idx}, your hand is: ")
-
-            for card in player.cards_in_hand():
-
+            print(f"Player {idx}, your hand is: {player.get_printable_hand}")
 
     def share_info_window(self):
+        player: 'Player'
+        for idx, player in enumerate(self.players):
+            # Check if player wants to share info
+            correct_y_n_input = False
+            while not correct_y_n_input:
+                share_info = input(f'Player {idx}, do you want to share info? [y/n]')
+                correct_y_n_input = (share_info == 'y' or share_info == 'n')
+
+            # If player said yes then get their info
+            if share_info == 'y':
+                success_sharing = False
+                while not success_sharing:
+                    shared_info = input(f'What info do you want to share? (e.g. format is \'position color number\')').split(' ')
+                    # Make sure input has three arguments
+                    if len(shared_info) != 3:
+                        print('\nIncorrect format, please try again\n')
+                        continue
+                    else:
+                        success_sharing = player.share_info(Card(shared_info[1], shared_info[2]), shared_info[0])
 
     def play_card_window(self, player):
 
