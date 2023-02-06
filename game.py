@@ -97,19 +97,25 @@ class Game(object):
 
         while not valid:
             received = input()
+
+            if not is_instance(received, int):
+                print("Invalid input")
+                continue
+            
             card_to_play = player.cards_in_hand[received]
 
             # make sure valid card is played
             if not (self.trump == None or card_to_play.color == self.trump or \
              self.trump not in [color for card.color for card in player.cards_in_hand]):
                 print("You must play the same color as trump if you have it in your hand")
+  
             else:
                 valid = True
 
         player.play_card(card_to_play)
 
         self.trick.append(card_to_play)
-
+ 
 
     def check_trick_winner(self):
 
