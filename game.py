@@ -22,9 +22,9 @@ class Game(object):
         # initialize players
         for i in range(self.num_players):
             if i < self.num_bots:
-                player = Player(is_agent = True)
+                player = Player(is_agent = True, id = i)
             else:
-                player = Player(is_agent = False)
+                player = Player(is_agent = False, id = i)
             
             self.players.append(player)
 
@@ -81,14 +81,52 @@ class Game(object):
         for idx, player in enumerate(self.players):
 
             print(f"Player {idx}, your hand is: ")
-            
-            for card in player.cards_in_hand()
+
+            for card in player.cards_in_hand():
+
 
     def share_info_window(self):
 
-    def play_card_window(self):
+    def play_card_window(self, player):
+
+        print(f"Player {idx}, choose one card to play")
+        print(player.get_printable_hand())
+
+        valid = False
+        card_to_play = None
+
+        while not valid:
+            received = input()
+            card_to_play = player.cards_in_hand[received]
+
+            # make sure valid card is played
+            if not (self.trump == None or card_to_play.color == self.trump or \
+             self.trump not in [color for card.color for card in player.cards_in_hand]):
+                print("You must play the same color as trump if you have it in your hand")
+            else:
+                valid = True
+
+        player.play_card(card_to_play)
+
+        self.trick.append(card_to_play)
+
 
     def check_trick_winner(self):
+
+        winner = None
+        curr_highest_num = 0
+        for player, played_card in self.curr_trick:
+            if played_card.color == self.trump and played_card.number > curr_highest_num:
+                winner = player
+                curr_highest_num = played_card.number
+            elif played_card.color == "SUB":
+                self.trump = "SUB"
+                curr_highest_num = played_card.number
+                winner = player
+
+        return player
+
+        
 
     def play(self):
 

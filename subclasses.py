@@ -6,10 +6,11 @@ from copy import deepcopy
 
 class Player:
 
-    def __init__(self, is_agent: bool) -> None:
+    def __init__(self, is_agent: bool, id: int) -> None:
         self.is_agent = is_agent
         self.cards_in_hand = []
         self.starting_hand = []
+        self.id = id
 
         self.cards_won = []
         self.tricks_won = 0
