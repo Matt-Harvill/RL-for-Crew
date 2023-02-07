@@ -1,5 +1,4 @@
 from typing import List
-from game import Game
 from copy import deepcopy
 
 class Player:
@@ -25,7 +24,7 @@ class Player:
         printable_hand = []
 
         card: 'Card'
-        for card in enumerate(self.cards_in_hand):
+        for card in self.cards_in_hand:
             printable_hand.append(str(card))
 
         return printable_hand
@@ -80,15 +79,18 @@ class Card:
 
     def __eq__(self, otherCard: 'Card') -> bool:
         return self.color == otherCard.color and self.number == otherCard.number
+
+    def __str__(self) -> str:
+        return self.color + "_" + str(self.number)
             
 class Task:
 
-    def __init__(self, task_id: str) -> None:
-        self.id = task_id
+    def __init__(self, name: str) -> None:
+        self.name = name
         self.is_complete = False
         self.is_impossible = False
     
-    def update_completion(self, game: 'Game', owner: 'Player') -> None:
+    def update_completion(self, game, owner: 'Player') -> None:
         """
         This function takes in the player info and checks if the task is complete
         """
@@ -96,14 +98,14 @@ class Task:
         is_impossible = False
         remaining_rounds = game.total_rounds - game.num_rounds_complete
 
-        if self.id == 'less_than_captain':
+        if self.name == 'less_than_captain':
             # If there is no way for owner to win >= tricks as captain, task is complete
             if game.captain.tricks_won > remaining_rounds + owner.tricks_won:
                 is_complete = True
             # If there's no way for captain to have > tricks as owner, task is impossible
             elif game.captain.tricks_won + remaining_rounds <= owner.tricks_won:
                 is_impossible = True
-        elif self.id == 'no_green_no_yellow':
+        elif self.name == 'no_green_no_yellow':
             # If owner has won a green or yellow card the task is impossible to complete
             for card in owner.cards_won:
                 if card.color == 'green' or card.color == 'yellow':
@@ -112,14 +114,14 @@ class Task:
             # If there are no more rounds and player hasn't won a green/yellow then task is complete
             if remaining_rounds == 0 and not is_impossible:
                 is_complete = True
-        elif self.id == 'exactly_2_tricks':
+        elif self.name == 'exactly_2_tricks':
             # If player has won more than 2 tricks or not enough rounds left to win 2, task is impossible
             if remaining_rounds + owner.tricks_won < 2 or owner.tricks_won > 2:
                 is_impossible = True
             # If there are no more rounds and player has won exactly two tricks then task is complete
             elif remaining_rounds == 0 and owner.tricks_won == 2:
                 is_complete = True
-        elif self.id == 'win_using_a_6':
+        elif self.name == 'win_using_a_6':
             # If player has won a trick using a 6, task is complete
             for card in owner.cards_won:
                 if card.number == 6 and card in owner.starting_hand:
@@ -131,7 +133,7 @@ class Task:
                     if card.number == 6:
                         is_impossible = False
                         break
-        elif self.id == 'win_green5_blue8':
+        elif self.name == 'win_green5_blue8':
             # If player has won the green5 and blue8 then task is complete
             found_green_5, found_blue_8 = False, False
             for card in owner.cards_won:

@@ -1,11 +1,14 @@
 from subclasses import Player, Task, Card
+from typing import List
 import numpy as np
 
-class Game(object):
+class Game:
 
     def __init__(self, num_bots):
         
+        # Can't be more than 3 bots
         assert num_bots <= 3
+
         self.num_players = 3
         self.num_bots = num_bots
         self.num_humans = self.num_players - self.num_bots
@@ -28,23 +31,24 @@ class Game(object):
             
             self.players.append(player)
 
-
         # initialize tasks (sample 2 from the 5 total)
+        task_idx_to_str = {0: 'less_than_captain', 1: 'no_green_no_yellow', 2: 'exactly_2_tricks', \
+            3: 'win_using_a_6', 4: 'win_green5_blue8'}
 
-        self.tasks = np.random.choice(list(range(self.num_unique_tasks)), size = 2, replace = False)
+        tasks_idxs = np.random.choice(list(range(self.num_unique_tasks)), size = 2, replace = False)
 
-        self.tasks = [Task(i) for i in self.tasks]
+        self.tasks = [Task(task_idx_to_str[i]) for i in tasks_idxs]
 
         # initialize deck
-
-        self.deck = []
+        deck = []
         for color in ["G", "P", "Y", "B", "SUB"]:
             for num in range(1,10):
                 if color == "SUB" and num > 4:
                     break
-                self.deck.append(Card(color, num))
+                deck.append(Card(color, num))
 
-        self.deck = np.random.shuffle(self.deck)
+        np.random.shuffle(deck)
+        self.deck = list(deck)
 
 
         
@@ -55,19 +59,22 @@ class Game(object):
         assert self.num_players == 3
 
         # ensure that no one player always gets the largest hand
-        self.players = np.shuffle(self.players)
+        np.random.shuffle(self.players)
+        self.players: List['Player'] = list(self.players)
 
-        self.players[0].assign_hand[self.deck[:13]]
+        self.players[0].assign_hand(self.deck[:13])
 
-        self.players[1].assign_hand[self.deck[13:27]]
+        self.players[1].assign_hand(self.deck[13:27])
 
-        self.players[2].assign_hand[self.deck[27:]]
+        self.players[2].assign_hand(self.deck[27:])
 
         # assign captain
-
+        captain_card = Card("SUB", 4)
+        player: 'Player'
         for idx, player in enumerate(self.players):
-            for card in self.cards_in_hand:
-                if card == Card("SUB", 4):
+            card: 'Card'
+            for card in player.cards_in_hand:
+                if card == captain_card:
                     self.captain = player
                     self.start_player_idx = idx
                     break
@@ -81,6 +88,7 @@ class Game(object):
         player: 'Player'
         for idx, player in enumerate(self.players):
             print(f"Player {idx}, your hand is: {player.get_printable_hand()}")
+        print()
 
     def share_info_window(self):
         player: 'Player'
@@ -88,8 +96,11 @@ class Game(object):
             # Check if player wants to share info
             correct_y_n_input = False
             while not correct_y_n_input:
-                share_info = input(f'Player {idx}, do you want to share info? [y/n]')
+                share_info = input(f'Player {idx}, your hand is: {player.get_printable_hand()} \
+                    \nDo you want to share info? [y/n]')
                 correct_y_n_input = (share_info == 'y' or share_info == 'n')
+                if not correct_y_n_input:
+                    print('Please type \'y\' or \'n\'')
 
             # If player said yes then get their info
             if share_info == 'y':
@@ -99,34 +110,33 @@ class Game(object):
                         \nFormat is \'position color number\' \
                         \nValid positions: lowest, only, highest \
                         \nValid colors: Y, G, B, P \
-                        \nValid numbers: 1-9').split(' ')
+                        \nValid numbers: 1-9\n').split(' ')
                     # Make sure input has three arguments
                     if len(shared_info) != 3:
                         print('\nIncorrect format, please try again\n')
                         continue
                     else:
                         success_sharing = player.share_info(Card(shared_info[1], shared_info[2]), shared_info[0])
+        print()
 
-    def play_card_window(self, player):
-
-        print(f"Player {idx}, choose one card to play")
-        print(player.get_printable_hand())
+    def play_card_window(self, player: 'Player'):
 
         valid = False
         card_to_play = None
 
         while not valid:
-            received = input()
+            received = input(f'Player {player.id}, choose one card to play \
+                \nHere is your hand: {player.get_printable_hand()}\n')
 
-            if not is_instance(received, int):
-                print("Invalid input")
+            if not received.isdigit():
+                print("Invalid input, please enter a digit")
                 continue
             
             card_to_play = player.cards_in_hand[received]
 
             # make sure valid card is played
             if not (self.trump == None or card_to_play.color == self.trump or \
-             self.trump not in [color for card.color for card in player.cards_in_hand]):
+             self.trump not in [card.color for card in player.cards_in_hand]):
                 print("You must play the same color as trump if you have it in your hand")
   
             else:
@@ -170,7 +180,7 @@ class Game(object):
 
             self.curr_trick = {} # player : played_card
 
-            for i in range(num_players):
+            for i in range(self.num_players):
                 # allow players to show information
                 self.share_info_window()
 
