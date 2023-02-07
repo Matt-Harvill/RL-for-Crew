@@ -89,6 +89,7 @@ class Player:
             self.cards_in_hand.remove(card_to_play)
             return True
         
+        # If not a valid card to play, return false
         return False
 
 class Card:

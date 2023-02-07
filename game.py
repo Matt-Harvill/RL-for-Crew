@@ -63,10 +63,9 @@ class Game:
         # ensure that no one player always gets the largest hand
         np.random.shuffle(self.players)
         self.players: List['Player'] = list(self.players)
-
         self.players[0].assign_hand(self.deck[:13])
-        self.players[1].assign_hand(self.deck[13:27])
-        self.players[2].assign_hand(self.deck[27:])
+        self.players[1].assign_hand(self.deck[13:26])
+        self.players[2].assign_hand(self.deck[26:])
 
         # assign captain
         captain_card = Card('sub', 4)
@@ -78,8 +77,9 @@ class Game:
                     self.captain = player
                     self.start_player_idx = idx
                     break
-
         assert self.captain != None
+
+        
 
     def show_hands(self) -> None:
         '''
@@ -122,7 +122,6 @@ class Game:
 
     def play_card_window(self, player: 'Player') -> 'Card':
 
-        self.curr_trick
         success_playing_card = False
 
         while not success_playing_card:
@@ -136,7 +135,9 @@ class Game:
                 card_to_play = Card(card_to_play_input[0], int(card_to_play_input[1]))
                 success_playing_card = player.play_card(self, card_to_play)
 
-        return card_to_play
+        # Card was successfully played
+        card_played = card_to_play
+        return card_played
  
 
     def check_trick_winner(self):
@@ -144,8 +145,10 @@ class Game:
         winner = None
         curr_highest_num = 0
 
+        player: 'Player'
         played_card: 'Card'
-        for player, played_card in self.curr_trick:
+        print(self.curr_trick)
+        for player, played_card in self.curr_trick.items():
             if played_card.color == self.trump_color and played_card.number > curr_highest_num:
                 winner = player
                 curr_highest_num = played_card.number
@@ -154,7 +157,7 @@ class Game:
                 curr_highest_num = played_card.number
                 winner = player
 
-        return player
+        return winner
 
         
 
@@ -188,10 +191,8 @@ class Game:
                     self.trump_color = played_card.color
 
                 curr_player_idx = (curr_player_idx + 1) % self.num_players
-    
 
             # award one player the trick and set them to start the next round
-
             winner = self.check_trick_winner()
             self.start_player_idx = winner.id
 
@@ -201,7 +202,7 @@ class Game:
                 print('Lost game')
 
             elif game_status == 'done':
-                print('Ya\'ll won! Go celebrate w boba')
+                print('Y\'all won! Go celebrate w boba')
 
 
 
