@@ -37,8 +37,7 @@ class Player:
         """
 
         # Make sure player has this card or that it's not a SUB card (can't share info on subs)
-        card: 'Card'
-        if card not in self.cards_in_hand or card.color == 'SUB':
+        if sharing_card not in self.cards_in_hand or sharing_card.color == 'SUB':
             return False
 
         # Check conditions based on position of information sharing
