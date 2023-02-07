@@ -35,9 +35,10 @@ class Player:
         Makes sure that sharing the input card and position is correct and valid
         If so, it performs the info sharing
         """
-        # Make sure player has this card
+
+        # Make sure player has this card or that it's not a SUB card (can't share info on subs)
         card: 'Card'
-        if card not in self.cards_in_hand:
+        if card not in self.cards_in_hand or card.color == 'SUB':
             return False
 
         # Check conditions based on position of information sharing

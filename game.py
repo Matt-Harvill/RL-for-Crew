@@ -14,8 +14,8 @@ class Game(object):
 
         self.players = []
 
-        self.total_rounds = 13
-        self.num_rounds_complete = None
+        self.total_rounds = 40 // self.num_players # 13 for 3 players
+        self.num_rounds_complete = 0
         self.captain = None
         self.start_player_idx = None # idx of player who starts the round
 
@@ -95,7 +95,11 @@ class Game(object):
             if share_info == 'y':
                 success_sharing = False
                 while not success_sharing:
-                    shared_info = input(f'What info do you want to share? (e.g. format is \'position color number\')').split(' ')
+                    shared_info = input(f'What info do you want to share? \
+                        \nFormat is \'position color number\' \
+                        \nValid positions: lowest, only, highest \
+                        \nValid colors: Y, G, B, P \
+                        \nValid numbers: 1-9').split(' ')
                     # Make sure input has three arguments
                     if len(shared_info) != 3:
                         print('\nIncorrect format, please try again\n')

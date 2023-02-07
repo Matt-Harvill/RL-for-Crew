@@ -1,30 +1,15 @@
-from subclasses import *
-
-num_rounds = 10
-num_players = 4
+from game import Game
 
 def main():
 
     # Create the game
-    game = Game()
+    game = Game(num_bots=0)
 
-    game.players = [Player() for _ in range(num_players)]
-    # Assign hands to players
-    for player in game.players:
-        player.assign_hand(...)
+    # Initialize the game (assign hands and tasks)
+    game.initialize()
 
-    for i in range(num_rounds):
-
-        # Check for players wanting to reveal
-
-        # Prompt players for a move
-        for player in game.players:
-            # Check for players wanting to reveal
-
-            color, number = input.split('Type the card you want to play:', ' ')
-            player.play_card(Card(color, number))
-
-        # Check if tasks completed or if any can't be completed...
+    # Start the game
+    game.play()
 
 if __name__ == "__main__":
     main()
