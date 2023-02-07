@@ -1,6 +1,7 @@
 from subclasses import Player, Task, Card
 from typing import List
 import numpy as np
+import readline # Allows for navigating through previous user inputs
 
 class Game:
 
@@ -17,10 +18,11 @@ class Game:
 
         self.players = []
 
-        self.total_rounds = 40 // self.num_players # 13 for 3 players
+        self.total_rounds = 13
         self.num_rounds_complete = 0
         self.captain = None
         self.start_player_idx = None # idx of player who starts the round
+        self.trump_color = None
 
         # initialize players
         for i in range(self.num_players):
@@ -41,9 +43,9 @@ class Game:
 
         # initialize deck
         deck = []
-        for color in ["G", "P", "Y", "B", "SUB"]:
+        for color in ['green', 'pink', 'yellow', 'blue', 'sub']:
             for num in range(1,10):
-                if color == "SUB" and num > 4:
+                if color == 'sub' and num > 4:
                     break
                 deck.append(Card(color, num))
 
@@ -63,13 +65,11 @@ class Game:
         self.players: List['Player'] = list(self.players)
 
         self.players[0].assign_hand(self.deck[:13])
-
         self.players[1].assign_hand(self.deck[13:27])
-
         self.players[2].assign_hand(self.deck[27:])
 
         # assign captain
-        captain_card = Card("SUB", 4)
+        captain_card = Card('sub', 4)
         player: 'Player'
         for idx, player in enumerate(self.players):
             card: 'Card'
@@ -82,12 +82,12 @@ class Game:
         assert self.captain != None
 
     def show_hands(self) -> None:
-        """
+        '''
         Print all of the players' hands
-        """
+        '''
         player: 'Player'
         for idx, player in enumerate(self.players):
-            print(f"Player {idx}, your hand is: {player.get_printable_hand()}")
+            print(f'Player {idx}, your hand is: {player.get_printable_hand()}')
         print()
 
     def share_info_window(self):
@@ -97,66 +97,60 @@ class Game:
             correct_y_n_input = False
             while not correct_y_n_input:
                 share_info = input(f'Player {idx}, your hand is: {player.get_printable_hand()} \
-                    \nDo you want to share info? [y/n]')
+                    \nDo you want to share info? [y/n]\n')
                 correct_y_n_input = (share_info == 'y' or share_info == 'n')
                 if not correct_y_n_input:
-                    print('Please type \'y\' or \'n\'')
+                    print('Please type \'y\' or \'n\'\n')
 
             # If player said yes then get their info
             if share_info == 'y':
                 success_sharing = False
                 while not success_sharing:
-                    shared_info = input(f'What info do you want to share? \
+                    shared_info = input(f'Player {idx}, your hand is: {player.get_printable_hand()} \
+                        \nWhat info do you want to share? \
                         \nFormat is \'position color number\' \
                         \nValid positions: lowest, only, highest \
-                        \nValid colors: Y, G, B, P \
+                        \nValid colors: yellow, green, blue, pink \
                         \nValid numbers: 1-9\n').split(' ')
                     # Make sure input has three arguments
                     if len(shared_info) != 3:
                         print('\nIncorrect format, please try again\n')
                         continue
                     else:
-                        success_sharing = player.share_info(Card(shared_info[1], shared_info[2]), shared_info[0])
+                        success_sharing = player.share_info(Card(shared_info[1], int(shared_info[2])), shared_info[0])
         print()
 
-    def play_card_window(self, player: 'Player'):
+    def play_card_window(self, player: 'Player') -> 'Card':
 
-        valid = False
-        card_to_play = None
+        self.curr_trick
+        success_playing_card = False
 
-        while not valid:
-            received = input(f'Player {player.id}, choose one card to play \
-                \nHere is your hand: {player.get_printable_hand()}\n')
+        while not success_playing_card:
+            card_to_play_input = input(f'Player {player.id}, choose one card to play \
+                \nHere is your hand: {player.get_printable_hand()}\n').split(' ')
 
-            if not received.isdigit():
-                print("Invalid input, please enter a digit")
+            if len(card_to_play_input) != 2:
+                print('\nIncorrect format, please try again\n')
                 continue
-            
-            card_to_play = player.cards_in_hand[received]
-
-            # make sure valid card is played
-            if not (self.trump == None or card_to_play.color == self.trump or \
-             self.trump not in [card.color for card in player.cards_in_hand]):
-                print("You must play the same color as trump if you have it in your hand")
-  
             else:
-                valid = True
+                card_to_play = Card(card_to_play_input[0], int(card_to_play_input[1]))
+                success_playing_card = player.play_card(self, card_to_play)
 
-        player.play_card(card_to_play)
-
-        self.trick.append(card_to_play)
+        return card_to_play
  
 
     def check_trick_winner(self):
 
         winner = None
         curr_highest_num = 0
+
+        played_card: 'Card'
         for player, played_card in self.curr_trick:
-            if played_card.color == self.trump and played_card.number > curr_highest_num:
+            if played_card.color == self.trump_color and played_card.number > curr_highest_num:
                 winner = player
                 curr_highest_num = played_card.number
-            elif played_card.color == "SUB":
-                self.trump = "SUB"
+            elif played_card.color == 'sub':
+                self.trump_color = 'sub'
                 curr_highest_num = played_card.number
                 winner = player
 
@@ -168,11 +162,10 @@ class Game:
 
         self.initialize()
 
-        print("Begin game!")
+        print('Begin game!')
 
         # show each player their hand via terminal
         self.show_hands()
-        
         
         for round in range(self.total_rounds):
 
@@ -185,14 +178,14 @@ class Game:
                 self.share_info_window()
 
                 # allow each current player to play
-                curr_player = self.players[curr_player_idx]
+                curr_player: 'Player' = self.players[curr_player_idx]
 
                 played_card = self.play_card_window(curr_player)
 
                 self.curr_trick[curr_player] = played_card
 
-                if i == 0: # if start of the round, assign the trump color
-                    self.trump = played_card.color
+                if i == 0: # if start of the round, assign the trump_color color
+                    self.trump_color = played_card.color
 
                 curr_player_idx = (curr_player_idx + 1) % self.num_players
     
@@ -204,28 +197,29 @@ class Game:
 
             game_status = self.get_game_status()
 
-            if game_status == "lost":
-                print("Lost game")
+            if game_status == 'lost':
+                print('Lost game')
 
-            elif game_status == "done":
-                print("Ya'll won! Go celebrate w boba")
+            elif game_status == 'done':
+                print('Ya\'ll won! Go celebrate w boba')
 
 
 
     def get_game_status(self):
 
         completed_tasks = 0
+        task: 'Task'
         for player, task in self.task_assignments:
             task.update_completion(self, player)
             if task.is_complete:
                 completed_tasks += 1
             elif task.is_impossible:
-                return "lost"
+                return 'lost'
 
         if completed_tasks == 2:
-            return "won"
+            return 'won'
 
-        return "ongoing"
+        return 'ongoing'
 
 
         

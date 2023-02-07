@@ -1,6 +1,11 @@
 from typing import List
 from copy import deepcopy
 
+# Gets around cyclic import
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game import Game
+
 class Player:
 
     def __init__(self, is_agent: bool, id: int) -> None:
@@ -27,16 +32,16 @@ class Player:
         for card in self.cards_in_hand:
             printable_hand.append(str(card))
 
-        return printable_hand
+        return sorted(printable_hand)
 
     def share_info(self, sharing_card: 'Card', position: str) -> bool:
-        """
+        '''
         Makes sure that sharing the input card and position is correct and valid
         If so, it performs the info sharing
-        """
+        '''
 
-        # Make sure player has this card or that it's not a SUB card (can't share info on subs)
-        if sharing_card not in self.cards_in_hand or sharing_card.color == 'SUB':
+        # Make sure player has this card or that it's not a sub card (can't share info on subs)
+        if sharing_card not in self.cards_in_hand or sharing_card.color == 'sub':
             return False
 
         # Check conditions based on position of information sharing
@@ -64,12 +69,27 @@ class Player:
         self.token_position = position
         return True
 
-    def play_card(self, card: 'Card') -> 'Card':
-        if card == self.revealed_card:
-            self.revealed_card = None
-            self.token_position = 'used'
-        played_card = self.cards_in_hand.pop(self.cards_in_hand.index(card))
-        return played_card
+    def play_card(self, game: 'Game', card_to_play: 'Card') -> bool:
+        '''
+        Takes in a card to play, checks if player can play it and returns if successful or not
+        '''
+        # Make sure player has the card
+        if card_to_play not in self.cards_in_hand:
+            print('Card not in hand')
+            return False
+
+        # make sure valid card is played
+        if game.trump_color is None or \
+            game.trump_color == card_to_play.color or \
+            game.trump_color not in [card.color for card in self.cards_in_hand]:
+
+            if self.revealed_card is not None and card_to_play == self.revealed_card:
+                self.revealed_card = None
+                self.token_position = 'used'
+            self.cards_in_hand.remove(card_to_play)
+            return True
+        
+        return False
 
 class Card:
 
@@ -81,7 +101,7 @@ class Card:
         return self.color == otherCard.color and self.number == otherCard.number
 
     def __str__(self) -> str:
-        return self.color + "_" + str(self.number)
+        return self.color + ' ' + str(self.number)
             
 class Task:
 
@@ -90,10 +110,10 @@ class Task:
         self.is_complete = False
         self.is_impossible = False
     
-    def update_completion(self, game, owner: 'Player') -> None:
-        """
+    def update_completion(self, game: 'Game', owner:'Player') -> None:
+        '''
         This function takes in the player info and checks if the task is complete
-        """
+        '''
         is_complete = False
         is_impossible = False
         remaining_rounds = game.total_rounds - game.num_rounds_complete
@@ -107,6 +127,7 @@ class Task:
                 is_impossible = True
         elif self.name == 'no_green_no_yellow':
             # If owner has won a green or yellow card the task is impossible to complete
+            card: 'Card'
             for card in owner.cards_won:
                 if card.color == 'green' or card.color == 'yellow':
                     is_impossible = True
@@ -123,6 +144,7 @@ class Task:
                 is_complete = True
         elif self.name == 'win_using_a_6':
             # If player has won a trick using a 6, task is complete
+            card: 'Card'
             for card in owner.cards_won:
                 if card.number == 6 and card in owner.starting_hand:
                     is_complete = True
